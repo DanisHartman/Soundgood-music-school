@@ -3,41 +3,24 @@ SELECT * FROM show_sibling_relations;
 SELECT * FROM number_of_lessons_per_instructor;
 SELECT * FROM list_all_ensembles;
 
-
 /* ----------- Sibling ------------- */
 
-
-SELECT
-(SELECT COUNT(*)
-FROM
-(
-SELECT id   
-FROM student A  
-WHERE NOT EXISTS (SELECT student_id      
-                FROM sibling B
-                WHERE A.id = B.student_id)
-) AS sibling0
-) AS zero_siblings,
-
-(SELECT COUNT(*)
-FROM 
-(
-    SELECT student_id, COUNT(student_id) 
+SELECT  students, COUNT( students)-1 as siblings FROM (
+    SELECT student_id ,COUNT( sibling_id)+1 as students 
     FROM sibling
     GROUP BY student_id
-    HAVING COUNT(student_id) = 1 
-) AS sibling1
-) AS one_siblings,
+    
 
-(SELECT COUNT(*)
-FROM 
-(
-    SELECT student_id, COUNT(student_id) 
-    FROM sibling
-    GROUP BY student_id
-    HAVING COUNT(student_id) = 2 
-) AS sibling2
-) AS two_siblings;
+) AS sub
+GROUP BY students
+UNION 
+    SELECT (
+        SELECT COUNT(id) as no_sibling FROM student
+            FULL OUTER JOIN sibling 
+                ON student.id = sibling.student_id
+        WHERE student.id IS NULL or sibling.student_id IS NULL), 0
+        FROM sibling
+ORDER BY siblings
 
 /* ----------- Sibling ------------- */
 
@@ -53,7 +36,6 @@ OR g.time_slot_id IS NOT NULL
 AND t.date BETWEEN '2022-01-01' AND '2023-01-01'
 GROUP BY month,e,g
 ORDER BY month*/
-
 
 
 SELECT COUNT(group_lesson) as group_lesson, COUNT(ensemble) as ensemble, COUNT(individual_lesson) as individual_lesson, COUNT(ensemble)+COUNT(group_lesson)+COUNT(individual_lesson) as total, to_char(Z.t, 'Month') as month 

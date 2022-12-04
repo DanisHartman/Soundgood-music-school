@@ -7,6 +7,6 @@ CREATE DATABASE sgms;
 \c sgms;
 
 --Create database structure
-\i 'D:/Skola/DataLagring/SQL/MusicSchoolDB.sql'
+\i 'D:/Skola/DataLagring/Soundgood-music-school/Task3/MusicSchoolDB.sql'
 
-\i 'D:/Skola/DataLagring/SQL/insert.sql'
+\i 'D:/Skola/DataLagring/Soundgood-music-school/Task3/insert.sql'

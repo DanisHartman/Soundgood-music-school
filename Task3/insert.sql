@@ -387,19 +387,19 @@ insert into time_slot (date, time_from, time_to)
 VALUES
     ('2022-12-22','08:00:00','10:00:00'),
     ('2022-12-05','10:00:00','12:00:00'),
-    ('2023-12-10','13:00:00','15:00:00'),
-    ('2022-03-28','10:00:00','11:00:00'),
+    ('2022-12-08','13:00:00','15:00:00'),
+    ('2022-12-07','10:00:00','11:00:00'),
     ('2022-03-01','10:00:00','12:00:00'),
     ('2022-01-26','13:00:00','15:00:00'),
     ('2022-07-29','10:00:00','13:00:00'),
     ('2022-05-30','09:00:00','10:00:00'),
-    ('2022-11-12','13:00:00','15:00:00'),
-    ('2022-11-16','11:00:00','15:00:00'),
-    ('2022-10-09','12:00:00','15:00:00'),
+    ('2022-12-12','13:00:00','15:00:00'),
+    ('2022-12-16','11:00:00','15:00:00'),
+    ('2022-12-09','12:00:00','15:00:00'),
     ('2022-02-23','14:00:00','15:00:00'),
     ('2022-03-14','11:00:00','15:00:00'),
     ('2022-02-13','15:00:00','16:00:00'),
-    ('2022-04-04','12:00:00','15:00:00'),
+    ('2022-12-04','12:00:00','15:00:00'),
     ('2022-11-05','16:00:00','17:00:00'),
     ('2022-04-10','08:00:00','10:00:00'),
     ('2022-07-31','14:00:00','15:00:00'),
@@ -437,7 +437,7 @@ VALUES
         (SELECT id FROM time_slot WHERE  time_slot.id = 6) 
     ),
 
-    (5,3,5,1,1,3),
+    (8,4,5,1,1,3),
     (4,2,4,1,1,2),
     (6,3,3,4,1,10),
     (8,4,5,3,1,12),
@@ -453,8 +453,31 @@ VALUES
      ((SELECT id FROM student WHERE first_name = 'Barry'), 2),
     ((SELECT id FROM student WHERE first_name = 'Aaron'), 2),
     ((SELECT id FROM student WHERE first_name = 'Mark'), 2),
-    ((SELECT id FROM student WHERE first_name = 'Cruz'), 2);
+    ((SELECT id FROM student WHERE first_name = 'Cruz'), 2),
 
+    (1,3),
+    (4,3),
+    (3,3),
+    (5,3),
+    (7,3),
+
+    (1,4),
+    (8,4),
+    (9,4),
+    (7,4),
+
+    (5,5),
+    (3,5),
+    (4,5),
+
+    (3,6),
+    (2,6),
+    (1,6),
+
+    (4,7),
+    (8,7),
+    (9,7),
+    (7,7);
 
 
 INSERT INTO individual_lesson_pricing (level, discount, price)
@@ -584,12 +607,23 @@ INSERT INTO sibling(student_id, sibling_id)
 VALUES
     (1,2),
     (1,5),
+    (1,6),
     (2,1),
     (2,5),
+    (2,6),
     (3,4),
+    (3,10),
     (4,3),
+    (4,10),
     (5,1),
-    (5,2);
+    (5,2),
+    (5,6),
+    (6,1),
+    (6,2),
+    (6,5),
+    (10,3),
+    (10,4);
+    
 
 
 
@@ -618,37 +652,22 @@ GROUP BY month;
 /* --- */
 
 CREATE VIEW show_sibling_relations as
- SELECT
-(SELECT COUNT(*)
-FROM
-(
-SELECT id   
-FROM student A  
-WHERE NOT EXISTS (SELECT student_id      
-                FROM sibling B
-                WHERE A.id = B.student_id)
-)AS sibling0
-) AS zero_siblings,
-
-(SELECT COUNT(*)
-FROM 
-(
-    SELECT student_id, COUNT(student_id) 
+SELECT  students, COUNT( students)-1 as siblings FROM (
+    SELECT student_id ,COUNT( sibling_id)+1 as students 
     FROM sibling
     GROUP BY student_id
-    HAVING COUNT(student_id) = 1 
-) AS sibling1
-) AS one_siblings,
+    
 
-(SELECT COUNT(*)
-FROM 
-(
-    SELECT student_id, COUNT(student_id) 
-    FROM sibling
-    GROUP BY student_id
-    HAVING COUNT(student_id) = 2 
-) AS sibling2
-) AS two_siblings;
+) AS sub
+GROUP BY students
+UNION 
+    SELECT (
+        SELECT COUNT(id) as no_sibling FROM student
+            FULL OUTER JOIN sibling 
+                ON student.id = sibling.student_id
+        WHERE student.id IS NULL or sibling.student_id IS NULL), 0
+        FROM sibling
+ORDER BY siblings;
 
 /* --- */
 
