@@ -435,7 +435,13 @@ VALUES
         (SELECT id FROM ensemble_genre WHERE genre = 'Rock'),
         (SELECT id FROM ensemble_pricing WHERE skill_level = 'Ensemble' ), 
         (SELECT id FROM time_slot WHERE  time_slot.id = 6) 
-    );
+    ),
+
+    (5,3,5,1,1,3),
+    (4,2,4,1,1,2),
+    (6,3,3,4,1,10),
+    (8,4,5,3,1,12),
+    (6,3,1,2,1,13);
 
 INSERT INTO student_ensemble (student_id, ensemble_id)
 VALUES
@@ -464,38 +470,84 @@ VALUES
     ('Advanced', 10, 400);
 
 
-INSERT INTO individual_lesson (date, instructor_id, student_id, individual_lesson_pricing_id, individual_lesson_level_id, individual_lesson_instrument_id)
+INSERT INTO individual_lesson (instructor_id, student_id, individual_lesson_pricing_id, individual_lesson_level_id, individual_lesson_instrument_id,time_slot_id)
 VALUES
     (
-        '2023-11-22',
         (SELECT id FROM instructor WHERE first_name = 'Xanthus'),
         (SELECT id FROM student WHERE first_name = 'Aaron'),
         (SELECT id FROM individual_lesson_pricing WHERE level = 'Beginner'),
         (SELECT id FROM individual_lesson_level WHERE level = 'Beginner'),
-        (SELECT id FROM individual_lesson_instrument WHERE instrument = 'Electric Guitar')
-    );
+        (SELECT id FROM individual_lesson_instrument WHERE instrument = 'Electric Guitar'),
+        13
+    ),
+    (1,3,2,2,2,10),
+    (2,2,2,2,1,10),
+    (1,3,2,2,2,13),
+    (2,2,2,2,1,13),
+    (1,7,1,1,4,2),
+    (2,6,3,3,4,6);
 
 
 INSERT INTO group_lesson (max_students, min_students, instructor_id, group_lesson_pricing_id, group_lesson_level_id, group_lesson_instrument_id,time_slot_id)
 VALUES
     (
         2,
-        5,
+        7,
         (SELECT id FROM instructor WHERE first_name = 'Beau'),
         (SELECT id FROM group_lesson_pricing WHERE level = 'Intermediate'),
         (SELECT id FROM group_lesson_level WHERE level = 'Intermediate'),
         (SELECT id FROM group_lesson_instrument WHERE instrument = 'Synth'),
-        (SELECT id FROM time_slot WHERE time_slot.id = 2)
+        4
     ),
 
     (
-        2,
+        3,
         5,
         (SELECT id FROM instructor WHERE first_name = 'Porter'),
         (SELECT id FROM group_lesson_pricing WHERE level = 'Intermediate'),
         (SELECT id FROM group_lesson_level WHERE level = 'Intermediate'),
         (SELECT id FROM group_lesson_instrument WHERE instrument = 'Synth'),
-        (SELECT id FROM time_slot WHERE time_slot.id = 2)
+        5
+    ),
+
+     (
+        2,
+        5,
+        4,
+        (SELECT id FROM group_lesson_pricing WHERE level = 'Intermediate'),
+        (SELECT id FROM group_lesson_level WHERE level = 'Intermediate'),
+        (SELECT id FROM group_lesson_instrument WHERE instrument = 'Synth'),
+        6
+    ),
+
+    (
+        2,
+        6,
+        2,
+        (SELECT id FROM group_lesson_pricing WHERE level = 'Intermediate'),
+        (SELECT id FROM group_lesson_level WHERE level = 'Intermediate'),
+        (SELECT id FROM group_lesson_instrument WHERE instrument = 'Synth'),
+        7
+    ),
+
+     (
+        2,
+        4,
+        6,
+        (SELECT id FROM group_lesson_pricing WHERE level = 'Intermediate'),
+        (SELECT id FROM group_lesson_level WHERE level = 'Intermediate'),
+        2,
+        8
+    ),
+
+    (
+        2,
+        6,
+        7,
+        (SELECT id FROM group_lesson_pricing WHERE level = 'Intermediate'),
+        (SELECT id FROM group_lesson_level WHERE level = 'Intermediate'),
+        3,
+        10
     );
 
 INSERT INTO student_group_lesson(group_lesson_id, student_id)
@@ -503,7 +555,30 @@ VALUES
         (1, (SELECT id FROM student WHERE first_name = 'Barry')),
         (1, (SELECT id FROM student WHERE first_name = 'Aaron')),
         (1, (SELECT id FROM student WHERE first_name = 'Mark')),
-        (1, (SELECT id FROM student WHERE first_name = 'Cruz'));
+        (1, (SELECT id FROM student WHERE first_name = 'Cruz')),
+
+        (2, 3),
+        (2, 4),
+        (2, 5),
+
+        (3, 1),
+        (3, 4),
+        (3, 3),
+        (3, 5),
+        (3, 7),
+
+        (4, 10),
+        (4, 8),
+        (4, 9),
+        (4, 7),
+
+        (5, 5),
+        (5, 3),
+        (5, 4),
+        
+        (6, 3),
+        (6, 2),
+        (6, 10);
 
 INSERT INTO sibling(student_id, sibling_id)
 VALUES
@@ -517,20 +592,30 @@ VALUES
     (5,2);
 
 
+
+
 CREATE VIEW lessons_per_month as
-SELECT COUNT(group_lesson) as group_lesson, COUNT(ensemble) as ensemble, COUNT(ensemble)+COUNT(group_lesson) as total, to_char(Z.t, 'Month') as month 
+SELECT COUNT(group_lesson) as group_lesson, COUNT(ensemble) as ensemble, COUNT(individual_lesson) as individual_lesson, COUNT(ensemble)+COUNT(group_lesson)+COUNT(individual_lesson) as total, to_char(Z.t, 'Month') as month 
 FROM ( 
-        SELECT group_lesson, NULL as ensemble, null, time_slot,time_slot.date as t
+        SELECT group_lesson, NULL as ensemble, NULL as individual_lesson, null, time_slot,time_slot.date as t
         FROM group_lesson
             JOIN time_slot ON group_lesson.time_slot_id = time_slot.id
-            
+       
         UNION ALL
-
-        SELECT NULL, ensemble, null, time_slot,time_slot.date as t
+       
+        SELECT NULL, ensemble, NULL, NULL, time_slot,time_slot.date as t
         FROM ensemble
             JOIN time_slot ON ensemble.time_slot_id = time_slot.id
+        
+        UNION ALL
+       
+        SELECT NULL, NULL,CAST(individual_lesson as text), null , time_slot,time_slot.date as t
+        FROM individual_lesson
+            JOIN time_slot ON individual_lesson.time_slot_id = time_slot.id
 )AS Z 
 GROUP BY month;
+
+/* --- */
 
 CREATE VIEW show_sibling_relations as
  SELECT
@@ -565,6 +650,8 @@ FROM
 ) AS sibling2
 ) AS two_siblings;
 
+/* --- */
+
 CREATE VIEW list_all_ensembles as
 SELECT es.genre, to_char(time_slot.date, 'Day') as day, 
 CASE 
@@ -579,6 +666,8 @@ JOIN time_slot ON ensemble.time_slot_id = time_slot.id
 WHERE time_slot.date BETWEEN  NOW() AND  NOW()+ interval '1 week'
 GROUP BY s.ensemble_id, ensemble.id, es.genre, day
 ORDER BY day, es.genre;
+
+/* --- */
 
 CREATE VIEW number_of_lessons_per_instructor as 
 SELECT COUNT(Z.first_name) as lessons, Z.first_name as instructor, to_char(NOW(), 'Month') as month 
@@ -595,6 +684,14 @@ FROM (
         FROM instructor
             JOIN ensemble ON ensemble.instructor_id = instructor.id
             JOIN time_slot ON time_slot.id = ensemble.time_slot_id
+            WHERE EXTRACT(MONTH FROM time_slot.date) = EXTRACT(MONTH FROM NOW())
+
+        UNION ALL
+       
+        SELECT instructor.first_name 
+        FROM instructor
+            JOIN individual_lesson ON individual_lesson.instructor_id = instructor.id
+            JOIN time_slot ON time_slot.id = individual_lesson.time_slot_id
             WHERE EXTRACT(MONTH FROM time_slot.date) = EXTRACT(MONTH FROM NOW())
     )AS Z 
      
