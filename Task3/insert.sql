@@ -403,7 +403,7 @@ VALUES
     ('2022-11-05','16:00:00','17:00:00'),
     ('2022-04-10','08:00:00','10:00:00'),
     ('2022-07-31','14:00:00','15:00:00'),
-    ('2022-01-11','12:00:00','15:00:00'),
+    ('2023-01-11','12:00:00','15:00:00'),
     ('2022-10-05','09:00:00','10:00:00'),
     ('2022-07-18','11:00:00','13:00:00'),
     ('2022-10-15','16:00:00','17:00:00'),
@@ -411,7 +411,7 @@ VALUES
     ('2022-07-07','11:00:00','12:00:00'),
     ('2022-08-04','16:00:00','18:00:00'),
     ('2022-02-19','12:00:00','15:00:00'),
-    ('2022-11-08','13:00:00','15:00:00');
+    ('2023-11-08','13:00:00','15:00:00');
 
 
 INSERT INTO ensemble_pricing(price, skill_level, discount)
@@ -626,7 +626,7 @@ VALUES
     
 
 
-
+/* ------------ VIEWS --------------- */
 
 CREATE VIEW lessons_per_month as
 SELECT COUNT(group_lesson) as group_lesson, COUNT(ensemble) as ensemble, COUNT(individual_lesson) as individual_lesson, COUNT(ensemble)+COUNT(group_lesson)+COUNT(individual_lesson) as total, to_char(Z.t, 'Month') as month 
@@ -647,6 +647,7 @@ FROM (
         FROM individual_lesson
             JOIN time_slot ON individual_lesson.time_slot_id = time_slot.id
 )AS Z 
+WHERE EXTRACT (YEAR FROM Z.t) = '2023'
 GROUP BY month;
 
 /* --- */

@@ -1,3 +1,5 @@
+/* Views are located at the bottom of the insert.sql file */
+
 SELECT * FROM lessons_per_month;
 SELECT * FROM show_sibling_relations;
 SELECT * FROM number_of_lessons_per_instructor;
@@ -56,6 +58,7 @@ FROM (
         FROM individual_lesson
             JOIN time_slot ON individual_lesson.time_slot_id = time_slot.id
 )AS Z 
+WHERE EXTRACT (YEAR FROM Z.t) = '2023'
 GROUP BY month
 
 /* ----------- lessons per month ------------- */
